@@ -1,3 +1,39 @@
+#The MIT License (MIT)
+#
+#Copyright (c) 2020 Peterfdej
+#
+#Permission is hereby granted, free of charge, to any person obtaining a copy
+#of this software and associated documentation files (the "Software"), to deal
+#in the Software without restriction, including without limitation the rights
+#to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#copies of the Software, and to permit persons to whom the Software is
+#furnished to do so, subject to the following conditions:
+#
+#The above copyright notice and this permission notice shall be included in
+#all copies or substantial portions of the Software.
+#
+#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+#THE SOFTWARE.
+
+# Record_ok.py is a simple Python script for recording live ok.ru of users stored in a csv file.
+# Put record_ok.py and the cvs file in the same directory. Recordings will also be stored in that directory.
+# Advice: max 10 users in csv.
+# You can run record-ok.py multiple times, when you create multiple directories, each with his own
+# record_ok.py and csv file.
+# It is possible te edit the csv file while record_ok.py is running.
+# Use Notepad++ for editing.
+# Format csv: 123456789012,210987654321
+#
+# Requirements:	- Python 3
+#				- ffmpeg
+#
+# Usage: 	python record_ok.py (non converting to mp4)
+#			python record_ok.py -c (Recordings will be converted to mp4 after ending broadcast)
 from bs4 import BeautifulSoup
 import sys, time, os, getopt, csv
 import os.path
