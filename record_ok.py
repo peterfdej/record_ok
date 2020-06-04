@@ -68,15 +68,19 @@ def file_size(fname):
 	
 def get_live_broadcast(user):
 	req = urllib.request.Request(OK_URL + user + OK_URL_END)
+	broadcastid = ""
 	try:
 		response = urllib.request.urlopen(req)
 		r = response.read()
 		soup = BeautifulSoup(r, 'html.parser')
 		page_container = soup.find(id='listBlockPanelFriendVideoLiveRBlock')
-		if len(page_container) > 1:
-			data_string = str(page_container)
-			broadcastid = data_string[data_string.find('data-id="')+9:data_string.find('data-l="')-2]
-		else:
+		try:
+			if len(page_container) > 1:
+				data_string = str(page_container)
+				broadcastid = data_string[data_string.find('data-id="')+9:data_string.find('data-l="')-2]
+			else:
+				broadcastid = ""
+		except:
 			broadcastid = ""
 	except urllib.error.URLError as e:
 		res = e.reason
@@ -142,18 +146,22 @@ while True:
 					broadcastdict[broadcast_id]['state']= 'RUNNING'
 					broadcastdict[broadcast_id]['time']= time.time()
 					broadcastdict[broadcast_id]['timelong']= time.strftime("%Y_%m_%d_%H%M%S")
-					broadcastdict[broadcast_id]['filename']= user + '_ok_' + str(broadcastdict[broadcast_id]['timelong']) + '.mkv'
+					broadcastdict[broadcast_id]['filename']= username + '_ok_' + str(broadcastdict[broadcast_id]['timelong']) + '.mkv'
 					broadcastdict[broadcast_id]['filesize']= 0
-					broadcastdict[broadcast_id]['lasttime']= 0
+					broadcastdict[broadcast_id]['lasttime']= time.time()
 					broadcastdict[broadcast_id]['recording']= 0
 					print ('Start recording for: ', username)
-					rec_ffmpeg(broadcast_id, URL, broadcastdict[broadcast_id]['filename'] )
+					path = os.getcwd()
+					if not os.path.exists(path + '/' + user):
+						os.makedirs(path + '/' + user)
+					output = path + '\\' + user + '\\' + broadcastdict[broadcast_id]['filename']
+					rec_ffmpeg(broadcast_id, URL, output )
 					time.sleep(8)
-					if os.path.exists(broadcastdict[broadcast_id]['filename']):
+					if os.path.exists(output):
 						print ('Recording started for: ', username, '-', broadcast_id)
 					else:
 						p[broadcast_id].terminate()
-					if not os.path.exists(broadcastdict[broadcast_id]['filename']):
+					if not os.path.exists(output):
 						print ('No recording file created for: ', user, 'file: ', broadcastdict[broadcast_id]['filename'])
 						deleteuserbroadcast.append(broadcast_id)
 	
@@ -163,13 +171,13 @@ while True:
 			broadcastdict[broadcast_id]['state'] = 'ENDED'
 			deleteuserbroadcast.append(broadcast_id)
 		else:
-			print ('Running ',round(time.time()- broadcastdict[broadcast_id]['time']), 'seconds: ', broadcastdict[broadcast_id]['filename'])
+			print ('Running ',round(time.time()- broadcastdict[broadcast_id]['time']), 'seconds: ', broadcastdict[broadcast_id]['user'] , ' ' ,  broadcastdict[broadcast_id]['filename'])
 			#compare file size every 60 seconds
-			if os.path.exists(broadcastdict[broadcast_id]['filename']) and broadcastdict[broadcast_id]['state'] == 'RUNNING':
-				if broadcastdict[broadcast_id]['filesize'] < file_size(broadcastdict[broadcast_id]['filename']) and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 60:
-					broadcastdict[broadcast_id]['filesize'] = file_size(broadcastdict[broadcast_id]['filename'])
+			if os.path.exists(output) and broadcastdict[broadcast_id]['state'] == 'RUNNING':
+				if broadcastdict[broadcast_id]['filesize'] < file_size(output) and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 60:
+					broadcastdict[broadcast_id]['filesize'] = file_size(output)
 					broadcastdict[broadcast_id]['lasttime']= time.time()
-				elif file_size(broadcastdict[broadcast_id]['filename']) == broadcastdict[broadcast_id]['filesize'] and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 60:
+				elif file_size(output) == broadcastdict[broadcast_id]['filesize'] and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 60:
 					p[broadcast_id].terminate()
 					time.sleep(2)
 					broadcastdict[broadcast_id]['state'] = 'ENDED'
@@ -179,6 +187,6 @@ while True:
 		p[broadcast_id].terminate()
 		print ('End recording for: ', broadcastdict[broadcast_id]['user'])
 		if broadcast_id in broadcastdict:
-			convert2mp4(broadcast_id, broadcastdict[broadcast_id]['filename'])
+			convert2mp4(broadcast_id, output)
 			del broadcastdict[broadcast_id]
 	time.sleep(1)
