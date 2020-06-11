@@ -140,30 +140,30 @@ while True:
 				if broadcast_id not in broadcastdict :
 					broadcastid = str(broadcast_id)
 					(username, URL) = get_rtmp(broadcastid)
-					broadcastdict[broadcast_id] = {}
-					broadcastdict[broadcast_id]['user'] = user
-					broadcastdict[broadcast_id]['username'] = username
-					broadcastdict[broadcast_id]['state']= 'RUNNING'
-					broadcastdict[broadcast_id]['time']= time.time()
-					broadcastdict[broadcast_id]['timelong']= time.strftime("%Y_%m_%d_%H%M%S")
-					broadcastdict[broadcast_id]['filename']= username + '_ok_' + str(broadcastdict[broadcast_id]['timelong']) + '.mkv'
-					broadcastdict[broadcast_id]['filesize']= 0
-					broadcastdict[broadcast_id]['lasttime']= time.time()
-					broadcastdict[broadcast_id]['recording']= 0
-					print ('Start recording for: ', username)
-					path = os.getcwd()
-					if not os.path.exists(path + '/' + user):
-						os.makedirs(path + '/' + user)
-					output = path + '\\' + user + '\\' + broadcastdict[broadcast_id]['filename']
-					rec_ffmpeg(broadcast_id, URL, output )
-					time.sleep(8)
-					if os.path.exists(output):
-						print ('Recording started for: ', username, '-', broadcast_id)
-					else:
-						p[broadcast_id].terminate()
-					if not os.path.exists(output):
-						print ('No recording file created for: ', user, 'file: ', broadcastdict[broadcast_id]['filename'])
-						deleteuserbroadcast.append(broadcast_id)
+					if len(URL) > 0:
+						broadcastdict[broadcast_id] = {}
+						broadcastdict[broadcast_id]['user'] = user
+						broadcastdict[broadcast_id]['username'] = username
+						broadcastdict[broadcast_id]['state']= 'RUNNING'
+						broadcastdict[broadcast_id]['time']= time.time()
+						broadcastdict[broadcast_id]['timelong']= time.strftime("%Y_%m_%d_%H%M%S")
+						broadcastdict[broadcast_id]['filename']= username + '_ok_' + str(broadcastdict[broadcast_id]['timelong']) + '.mkv'
+						broadcastdict[broadcast_id]['filesize']= 0
+						broadcastdict[broadcast_id]['lasttime']= time.time()
+						broadcastdict[broadcast_id]['recording']= 0
+						print ('Start recording for: ', username)
+						path = os.getcwd()
+						if not os.path.exists(path + '/' + user):
+							os.makedirs(path + '/' + user)
+						output = path + '\\' + user + '\\' + broadcastdict[broadcast_id]['filename']
+						rec_ffmpeg(broadcast_id, URL, output )
+						time.sleep(8)
+						if os.path.exists(output):
+							print ('Recording started for: ', username, '-', broadcast_id)
+						else:
+							p[broadcast_id].terminate()
+							print ('No recording file created for: ', user, 'file: ', broadcastdict[broadcast_id]['filename'])
+							deleteuserbroadcast.append(broadcast_id)
 	
 	for broadcast_id in broadcastdict:
 		#check if recording is running
