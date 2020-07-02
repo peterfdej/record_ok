@@ -73,21 +73,23 @@ def get_live_broadcast(user):
 		response = urllib.request.urlopen(req)
 		r = response.read()
 		soup = BeautifulSoup(r, 'html.parser')
-		page_container = soup.find(id='listBlockPanelFriendVideoLiveRBlock')
-		try:
-			if len(page_container) > 1:
-				data_string = str(page_container)
-				broadcastid = data_string[data_string.find('data-id="')+9:data_string.find('data-l="')-2]
-			else:
+		if (soup.find(id='listBlockPanelFriendVideoLiveRBlock')):
+			page_container = soup.find(id='listBlockPanelFriendVideoLiveRBlock')
+			try:
+				if len(page_container) > 1:
+					data_string = str(page_container)
+					broadcastid = data_string[data_string.find('data-id="')+9:data_string.find('data-l="')-2]
+				else:
+					broadcastid = ""
+			except:
 				broadcastid = ""
-		except:
-			broadcastid = ""
+		else:
+			broadcastid = "Restricted"
 	except urllib.error.URLError as e:
 		res = e.reason
 		print(res)
 		if res == 'Not Found':
 			broadcastid = 'unknown'
-			
 	return broadcastid
 	
 def get_rtmp(id):
@@ -103,6 +105,7 @@ def get_rtmp(id):
 		get_rtmp = rtmpstr[12:rtmpstr.find('\\\\')]
 	except urllib.error.URLError as e:
 		print("URLError: ",e.reason)
+		username = ''
 		get_rtmp = ''
 	return (username, get_rtmp)
 
@@ -124,6 +127,7 @@ while True:
 	with open('users.csv', 'r') as readfile:
 		reader = csv.reader(readfile, delimiter=',')
 		usernames2 = list(reader)
+		readfile.close
 	usernames = usernames2[0]
 	deleteuserbroadcast = []
 	for user in usernames:
@@ -136,6 +140,9 @@ while True:
 				with open('users.csv', 'w') as outfile:
 					writer = csv.writer(outfile, delimiter=',',quoting=csv.QUOTE_ALL)
 					writer.writerow(usernames)
+					outfile.close
+			elif broadcast_id == 'Restricted':
+				print("Restricted user")
 			else:
 				if broadcast_id not in broadcastdict :
 					broadcastid = str(broadcast_id)
@@ -174,10 +181,10 @@ while True:
 			print ('Running ',round(time.time()- broadcastdict[broadcast_id]['time']), 'seconds: ', broadcastdict[broadcast_id]['user'] , ' ' ,  broadcastdict[broadcast_id]['filename'])
 			#compare file size every 60 seconds
 			if os.path.exists(output) and broadcastdict[broadcast_id]['state'] == 'RUNNING':
-				if broadcastdict[broadcast_id]['filesize'] < file_size(output) and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 60:
+				if broadcastdict[broadcast_id]['filesize'] < file_size(output) and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 120:
 					broadcastdict[broadcast_id]['filesize'] = file_size(output)
 					broadcastdict[broadcast_id]['lasttime']= time.time()
-				elif file_size(output) == broadcastdict[broadcast_id]['filesize'] and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 60:
+				elif file_size(output) == broadcastdict[broadcast_id]['filesize'] and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 120:
 					p[broadcast_id].terminate()
 					time.sleep(2)
 					broadcastdict[broadcast_id]['state'] = 'ENDED'
@@ -185,7 +192,7 @@ while True:
 	#end recording, delete entry in broadcastdict and convert mkv -> mp4
 	for broadcast_id in deleteuserbroadcast:
 		p[broadcast_id].terminate()
-		print ('End recording for: ', broadcastdict[broadcast_id]['user'])
+		#print ('End recording for: ', broadcastdict[broadcast_id]['user'])
 		if broadcast_id in broadcastdict:
 			convert2mp4(broadcast_id, output)
 			del broadcastdict[broadcast_id]
