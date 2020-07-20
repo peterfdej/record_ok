@@ -49,6 +49,7 @@ broadcastdict = {}
 p = {}
 p1 = {}
 convertmp4 = 0
+maxrec = 8
 
 args = sys.argv[1:]
 if len(args):
@@ -131,9 +132,12 @@ while True:
 	usernames = usernames2[0]
 	deleteuserbroadcast = []
 	for user in usernames:
+		count = 0
+		for broadcast_id in broadcastdict:
+			count += 1
 		print ((time.strftime("%H:%M:%S")),' Polling ok account   :', user)
 		broadcast_id = get_live_broadcast(user)
-		if broadcast_id:
+		if broadcast_id and count < maxrec:
 			if broadcast_id == 'unknown':
 				usernames.remove(user)
 				print ('Delete user: ', user)
@@ -144,7 +148,7 @@ while True:
 			elif broadcast_id == 'Restricted':
 				print("Restricted user")
 			else:
-				if broadcast_id not in broadcastdict :
+				if broadcast_id not in broadcastdict:
 					broadcastid = str(broadcast_id)
 					(username, URL) = get_rtmp(broadcastid)
 					if len(URL) > 0:
@@ -181,10 +185,10 @@ while True:
 			print ('Running ',round(time.time()- broadcastdict[broadcast_id]['time']), 'seconds: ', broadcastdict[broadcast_id]['user'] , ' ' ,  broadcastdict[broadcast_id]['filename'])
 			#compare file size every 60 seconds
 			if os.path.exists(output) and broadcastdict[broadcast_id]['state'] == 'RUNNING':
-				if broadcastdict[broadcast_id]['filesize'] < file_size(output) and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 120:
+				if broadcastdict[broadcast_id]['filesize'] < file_size(output) and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 180:
 					broadcastdict[broadcast_id]['filesize'] = file_size(output)
 					broadcastdict[broadcast_id]['lasttime']= time.time()
-				elif file_size(output) == broadcastdict[broadcast_id]['filesize'] and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 120:
+				elif file_size(output) == broadcastdict[broadcast_id]['filesize'] and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 180:
 					p[broadcast_id].terminate()
 					time.sleep(2)
 					broadcastdict[broadcast_id]['state'] = 'ENDED'

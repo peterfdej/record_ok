@@ -14,7 +14,8 @@ broadcastdict = {}
 p = {}
 p1 = {}
 convertmp4 = 0
-maxurl = 5
+starturl = 5
+maxurl = 10
 
 args = sys.argv[1:]
 if len(args):
@@ -127,7 +128,7 @@ while True:
 				usernames.remove(user)
 				print(user + " removed")
 				newuser = 1
-		for x in range(1, maxurl + 1):
+		for x in range(starturl, starturl + maxurl + 1):
 			broadcast_id = result[str(x)]["broadcast_id"]
 			broadcasturl = BROADCAST_URL + broadcast_id
 			user_broadcast = get_rtmp(broadcasturl)
@@ -152,9 +153,9 @@ while True:
 					broadcastdict[broadcast_id]['recording']= 0
 					print ('Start recording for: ', user)
 					path = os.getcwd()
-					if not os.path.exists(path + '/' + user):
-						os.makedirs(path + '/' + user)
-					output = path + '\\' + user + '\\' + broadcastdict[broadcast_id]['filename']
+					if not os.path.exists(path + '/R' + user):
+						os.makedirs(path + '/R' + user)
+					output = path + '\\R' + user + '\\' + broadcastdict[broadcast_id]['filename']
 					rec_ffmpeg(broadcast_id, broadcastdict[broadcast_id]['URL'], output )
 					time.sleep(8)
 					if os.path.exists(output):
@@ -187,10 +188,10 @@ while True:
 				print ('Running ',round(time.time()- broadcastdict[broadcast_id]['time']), 'seconds: ', broadcastdict[broadcast_id]['user'] , ' ' ,  broadcastdict[broadcast_id]['filename'])
 				#compare file size every 60 seconds
 				if os.path.exists(output) and broadcastdict[broadcast_id]['state'] == 'RUNNING':
-					if broadcastdict[broadcast_id]['filesize'] < file_size(output) and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 120:
+					if broadcastdict[broadcast_id]['filesize'] < file_size(output) and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 180:
 						broadcastdict[broadcast_id]['filesize'] = file_size(output)
 						broadcastdict[broadcast_id]['lasttime']= time.time()
-					elif file_size(output) == broadcastdict[broadcast_id]['filesize'] and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 120:
+					elif file_size(output) == broadcastdict[broadcast_id]['filesize'] and (time.time() - broadcastdict[broadcast_id]['lasttime']) > 180:
 						p[broadcast_id].terminate()
 						time.sleep(2)
 						broadcastdict[broadcast_id]['state'] = 'ENDED'
