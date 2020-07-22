@@ -14,8 +14,11 @@ broadcastdict = {}
 p = {}
 p1 = {}
 convertmp4 = 0
-starturl = 5
-maxurl = 10
+starturl = 1
+maxurl = 25
+userstart = 570000000000
+rec_restr = 0 #1 for record restricted user
+maxlenusers = 15
 
 args = sys.argv[1:]
 if len(args):
@@ -134,41 +137,46 @@ while True:
 			user_broadcast = get_rtmp(broadcasturl)
 			user = user_broadcast[0]
 			#check user in user.csv and skipuser.csv
-			if user in usernames or user in skipusers or user == "":
+			if user in usernames or user in skipusers or user == "" or int(user) < userstart:
 				print("skip user ", user)
 			else:
 				if get_restricted_broadcast(user) == "Restricted" and broadcast_id not in broadcastdict:
-					##record
-					username = user_broadcast[1]
-					broadcastdict[broadcast_id] = {}
-					broadcastdict[broadcast_id]['user'] = user
-					broadcastdict[broadcast_id]['username'] = username
-					broadcastdict[broadcast_id]['URL'] = user_broadcast[2]
-					broadcastdict[broadcast_id]['state']= 'RUNNING'
-					broadcastdict[broadcast_id]['time']= time.time()
-					broadcastdict[broadcast_id]['timelong']= time.strftime("%Y_%m_%d_%H%M%S")
-					broadcastdict[broadcast_id]['filename']= username + '_ok_' + str(broadcastdict[broadcast_id]['timelong']) + '.mkv'
-					broadcastdict[broadcast_id]['filesize']= 0
-					broadcastdict[broadcast_id]['lasttime']= time.time()
-					broadcastdict[broadcast_id]['recording']= 0
-					print ('Start recording for: ', user)
-					path = os.getcwd()
-					if not os.path.exists(path + '/R' + user):
-						os.makedirs(path + '/R' + user)
-					output = path + '\\R' + user + '\\' + broadcastdict[broadcast_id]['filename']
-					rec_ffmpeg(broadcast_id, broadcastdict[broadcast_id]['URL'], output )
-					time.sleep(8)
-					if os.path.exists(output):
-						print ('Recording started for: ', username, '-', broadcast_id)
+					if rec_restr == 1:
+						##record
+						username = user_broadcast[1]
+						broadcastdict[broadcast_id] = {}
+						broadcastdict[broadcast_id]['user'] = user
+						broadcastdict[broadcast_id]['username'] = username
+						broadcastdict[broadcast_id]['URL'] = user_broadcast[2]
+						broadcastdict[broadcast_id]['state']= 'RUNNING'
+						broadcastdict[broadcast_id]['time']= time.time()
+						broadcastdict[broadcast_id]['timelong']= time.strftime("%Y_%m_%d_%H%M%S")
+						broadcastdict[broadcast_id]['filename']= username + '_ok_' + str(broadcastdict[broadcast_id]['timelong']) + '.mkv'
+						broadcastdict[broadcast_id]['filesize']= 0
+						broadcastdict[broadcast_id]['lasttime']= time.time()
+						broadcastdict[broadcast_id]['recording']= 0
+						print ('Start recording for: ', user)
+						path = os.getcwd()
+						if not os.path.exists(path + '/R' + user):
+							os.makedirs(path + '/R' + user)
+						output = path + '\\R' + user + '\\' + broadcastdict[broadcast_id]['filename']
+						rec_ffmpeg(broadcast_id, broadcastdict[broadcast_id]['URL'], output )
+						time.sleep(8)
+						if os.path.exists(output):
+							print ('Recording started for: ', username, '-', broadcast_id)
+						else:
+							p[broadcast_id].terminate()
+							print ('No recording file created for: ', user, 'file: ', broadcastdict[broadcast_id]['filename'])
+							deleteuserbroadcast.append(broadcast_id)
 					else:
-						p[broadcast_id].terminate()
-						print ('No recording file created for: ', user, 'file: ', broadcastdict[broadcast_id]['filename'])
-						deleteuserbroadcast.append(broadcast_id)
+						print("Restricted user not recording")
 				elif user in str(broadcastdict):
 					print ("Restricted user recording")
 				else:
-					usernames.append(user)
+					usernames.insert(0,user)
 					print ('Add user: ', user)
+					if len(usernames) > maxlenusers:
+						usernames.pop()
 					newuser = 1
 			maxresult +=1
 			if maxresult > maxurl:
