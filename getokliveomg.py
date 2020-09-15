@@ -10,13 +10,16 @@ OK_URL = 'https://ok.ru/profile/'
 BROADCAST_URL = 'https://ok.ru/live/'
 OK_URL_END = '/video?st._aid=NavMenu_User_Friend_Video'
 
+SKIPFILE = 'skipuser.csv'
+USERFILE = 'users.csv'
 broadcastdict = {}
 p = {}
 p1 = {}
 convertmp4 = 0
 starturl = 1
-maxurl = 25
-userstart = 570000000000
+maxurl = 90
+userstart = 585000000000
+userend   = 600000000000
 rec_restr = 0 #1 for record restricted user
 maxlenusers = 15
 
@@ -117,12 +120,12 @@ while True:
 		maxresult = 1
 		newuser = 0
 		deleteuserbroadcast = []
-		with open('users.csv', 'r') as readfile:
+		with open(USERFILE, 'r') as readfile:
 			reader = csv.reader(readfile, delimiter=',')
 			usernames2 = list(reader)
 			readfile.close
 		usernames = usernames2[0]
-		with open('skipuser.csv', 'r') as readfile:
+		with open(SKIPFILE, 'r') as readfile:
 			reader = csv.reader(readfile, delimiter=',')
 			skipusers2 = list(reader)
 		skipusers = skipusers2[0]
@@ -137,7 +140,7 @@ while True:
 			user_broadcast = get_rtmp(broadcasturl)
 			user = user_broadcast[0]
 			#check user in user.csv and skipuser.csv
-			if user in usernames or user in skipusers or user == "" or int(user) < userstart:
+			if user in usernames or user in skipusers or user == "" or int(user) < userstart or int(user) > userend:
 				print("skip user ", user)
 			else:
 				if get_restricted_broadcast(user) == "Restricted" and broadcast_id not in broadcastdict:
@@ -182,7 +185,7 @@ while True:
 			if maxresult > maxurl:
 				break
 		if newuser == 1:
-			with open('users.csv', 'w') as outfile:
+			with open(USERFILE, 'w') as outfile:
 				writer = csv.writer(outfile, delimiter=',',quoting=csv.QUOTE_ALL)
 				writer.writerow(usernames)
 				outfile.close

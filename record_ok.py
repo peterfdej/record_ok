@@ -45,11 +45,13 @@ OK_URL = 'https://ok.ru/profile/'
 OK_URL_END = '/video?st._aid=NavMenu_User_Friend_Video'
 BROADCAST_URL = 'https://ok.ru/live/'
 
+USERFILE = 'users.csv'
+
 broadcastdict = {}
 p = {}
 p1 = {}
 convertmp4 = 0
-maxrec = 8
+maxrec = 4 #1 core for 1 recording
 
 args = sys.argv[1:]
 if len(args):
@@ -125,7 +127,7 @@ def convert2mp4(broadcast_id, input):
 while True:
 	#read users.csv into list every loop, so you can edit csv file during run.
 	print ('*--------------------------------------------------------------*')
-	with open('users.csv', 'r') as readfile:
+	with open(USERFILE, 'r') as readfile:
 		reader = csv.reader(readfile, delimiter=',')
 		usernames2 = list(reader)
 		readfile.close
@@ -141,10 +143,13 @@ while True:
 			if broadcast_id == 'unknown':
 				usernames.remove(user)
 				print ('Delete user: ', user)
-				with open('users.csv', 'w') as outfile:
+				with open(USERFILE, 'w') as outfile:
 					writer = csv.writer(outfile, delimiter=',',quoting=csv.QUOTE_ALL)
 					writer.writerow(usernames)
 					outfile.close
+				path = os.getcwd()
+				if  os.path.exists(path + '/' + user):
+					os.renames(user, user + '_DELETED')
 			elif broadcast_id == 'Restricted':
 				print("Restricted user")
 			else:
